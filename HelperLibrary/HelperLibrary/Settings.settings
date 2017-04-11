@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="HelperLibrary" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="DataBaseConnectionString" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">server=BlackBox;uid=Chris;pwd=Klampfn#1;database=Trading</Value>
+    </Setting>
+    <Setting Name="DataBaseConnectionStringTest" Type="System.String" Scope="User">
+      <Value Profile="(Default)">server=BlackBox;uid=Chris;pwd=Klampfn#1;database=Trading_Test</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
