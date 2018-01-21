@@ -27,10 +27,14 @@ namespace HelperLibrary.Database.Models
         public string Ccy { get; set; }
         [Column(Storage = "DESCRIPTION")]
         public string Description { get; set; }
-        //[Column(Storage = "COUNTRY")]
+        [Column(Storage = "COUNTRY")]
         public string Country { get; set; }
 
         [Column(Storage = "INDEX_MEMBER_OF")]
         public int? IndexMemberOf { get; set; }
+
+        public DateTime LastPriceDate { get; set; }
+        public decimal LastPrice { get; set; }
+
     }
 }

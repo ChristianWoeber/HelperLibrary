@@ -2,6 +2,6 @@
 {
     public interface ISqlValueCmd
     {
-        string CreateCmd(params object[] values);
+        string CreateCmd(string field = null, params object[] values);
     }
 }

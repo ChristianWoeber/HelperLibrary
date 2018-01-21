@@ -8,7 +8,7 @@ namespace HelperLibrary.Database
 {
     public class ValuesCmd : ISqlValueCmd
     {
-        public string CreateCmd(params object[] values)
+        public string CreateCmd(string field, params object[] values)
         {
             //triviale Implementierung gehe von value pairs aus 1 FieldName, 2 Value, FieldName, Value //
             // daher werden alle Fieldnames und alle Values gesammelt um folgende Syntax zu erhalten//

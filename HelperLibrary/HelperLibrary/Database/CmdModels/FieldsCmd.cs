@@ -6,7 +6,7 @@ namespace HelperLibrary.Database
 {
     public class FieldsCmd : ISqlValueCmd
     {
-        public string CreateCmd(params object[] fields)
+        public string CreateCmd(string field, params object[] fields)
         {
             var sb = new StringBuilder();
             if (fields.Length == 1)

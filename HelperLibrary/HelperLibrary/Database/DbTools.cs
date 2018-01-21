@@ -19,12 +19,14 @@ namespace HelperLibrary.Database
                     if (builder.SQLCmdType == SQLCommandTypes.Insert || builder.SQLCmdType == SQLCommandTypes.Delete
                         || builder.SQLCmdType == SQLCommandTypes.Update)
                     {
+
+                        if (builder.OperatorsCmdBuilder.Length > 0)
+                        {
+                            builder.CmdBuilder.Append(" where ");
+                            builder.CmdBuilder.Append(builder.OperatorsCmdBuilder);
+                        }
+
                         _dbCmd.CommandText = builder.CmdBuilder.ToString();
-
-                        //cmd.CommandText = "INSERT INTO Authors(Name) VALUES(@Name)";
-                        //  cmd.Prepare();
-                        //cmd.Parameters.AddWithValue("@Name", "Trygve Gulbranssen");
-
                         _dbCmd.ExecuteNonQuery();
                     }
                 }
@@ -50,7 +52,7 @@ namespace HelperLibrary.Database
                 _dbCon = con;
                 _dbCmd = con.CreateCommand();
 
-                if(builder.OperatorsCmdBuilder.Length > 0)
+                if (builder.OperatorsCmdBuilder.Length > 0)
                 {
                     builder.CmdBuilder.Append(" where ");
                     builder.CmdBuilder.Append(builder.OperatorsCmdBuilder);
@@ -91,6 +93,14 @@ namespace HelperLibrary.Database
             else
                 return null;
 
+        }
+
+        public static object CastType(object value, Type type)
+        {
+            if (type.GetType() == typeof(int))
+                return (int)value;
+
+            return value;
         }
     }
 }

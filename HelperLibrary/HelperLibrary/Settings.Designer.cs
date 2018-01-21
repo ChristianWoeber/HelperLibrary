@@ -43,5 +43,32 @@ namespace HelperLibrary {
                 this["DataBaseConnectionStringTest"] = value;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("christianwoeber@gmx.at")]
+        public string From {
+            get {
+                return ((string)(this["From"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://ichart.finance.yahoo.com/table.csv?")]
+        public string HistoricalBaseUrl {
+            get {
+                return ((string)(this["HistoricalBaseUrl"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://finance.yahoo.com/d/quotes.csv?s")]
+        public string SingleBaseUrl {
+            get {
+                return ((string)(this["SingleBaseUrl"]));
+            }
+        }
     }
 }

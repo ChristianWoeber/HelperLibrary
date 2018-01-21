@@ -88,7 +88,7 @@ namespace HelperLibrary.Database
 
             var ret = _cmdOperatorCache.ContainsKey(cmdType) ? _cmdOperatorCache[cmdType].CreateOperatorCmd(values) : null;
             OperatorsCmdBuilder.Append(ret);
-      
+
 
             return ret;
         }
@@ -104,7 +104,7 @@ namespace HelperLibrary.Database
             if (_cmdValuesCache == null)
                 LoadValuesCmdCache();
 
-            var ret = _cmdValuesCache.ContainsKey(cmdType) ? _cmdValuesCache[cmdType].CreateCmd(fields) : null;
+            var ret = _cmdValuesCache.ContainsKey(cmdType) ? _cmdValuesCache[cmdType].CreateCmd(null, fields) : null;
             CmdBuilder.Replace("@", ret);
             return ret;
         }
@@ -140,13 +140,13 @@ namespace HelperLibrary.Database
             CreateValuesCmdText(SQLValueTypes.Values, values);
         }
 
-        private string CreateValuesCmdText(SQLValueTypes cmdType, object[] values)
+        private string CreateValuesCmdText(SQLValueTypes cmdType, object[] values, string field = null)
         {
             if (_cmdValuesCache == null)
                 LoadValuesCmdCache();
 
             // UpdateValues
-            var ret = _cmdValuesCache.ContainsKey(cmdType) ? _cmdValuesCache[cmdType].CreateCmd(values) : null;
+            var ret = _cmdValuesCache.ContainsKey(cmdType) ? _cmdValuesCache[cmdType].CreateCmd(field, values) : null;
             CmdBuilder.Append(ret);
             return ret;
         }
@@ -170,15 +170,19 @@ namespace HelperLibrary.Database
                         if (!_cmdValuesCache.ContainsKey(cmdEnum))
                             _cmdValuesCache.Add(cmdEnum, new UpdateValuesCmd());
                         break;
+                    case SQLValueTypes.InList:
+                        if (!_cmdValuesCache.ContainsKey(cmdEnum))
+                            _cmdValuesCache.Add(cmdEnum, new InListValuesCmd());
+                        break;
                     default:
                         break;
                 }
             }
         }
 
-        internal void CreateValueTypesCmd(SQLValueTypes type, object[] values)
+        public void CreateValueTypesCmd(SQLValueTypes type, object[] values, string field = null)
         {
-            CreateValuesCmdText(type, values);
+            CreateValuesCmdText(type, values, field);
         }
     }
 }

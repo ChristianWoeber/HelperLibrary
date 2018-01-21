@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HelperLibrary.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Linq.Mapping;
@@ -9,18 +10,29 @@ namespace HelperLibrary.Database
 {
     internal class ObjectMapper<T>
     {
+        // TODO: CreateFunction für Mapping von Objects
         internal static T Create(IDataReader rd)
         {
             var obj = Activator.CreateInstance<T>();
             foreach (var item in typeof(T).GetProperties())
             {
+                //var setValue = item.CreateSetter<T>();
                 var lstAttributes = (IList<CustomAttributeData>)item.CustomAttributes;
                 if (lstAttributes.Count > 0)
                 {
-                    var attr = lstAttributes[0].NamedArguments[0].TypedValue.Value.ToString();
-                    var dbValue = rd[attr];
-                    var propertyValue = TypeConversion(dbValue, item.PropertyType);
-                    item.SetValue(obj, propertyValue);
+                    try
+                    {
+                        var attr = lstAttributes.FirstOrDefault(x => x.AttributeType.FullName.Contains("Linq")).NamedArguments[0].TypedValue.Value.ToString();
+                        var dbValue = rd[attr];
+                        var propertyValue = TypeConversion(dbValue, item.PropertyType);
+                        item.SetValue(obj, propertyValue);
+                        //setValue(obj, propertyValue);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new ArgumentException(ex.Message);
+                    }
                 }
             }
             return obj;
@@ -34,7 +46,7 @@ namespace HelperLibrary.Database
             }
             else if (propertyType == typeof(int?))
             {
-                if (propertyType == null)
+                if(dbValue == DBNull.Value)
                     return null;
 
                 return Convert.ToInt32(dbValue);

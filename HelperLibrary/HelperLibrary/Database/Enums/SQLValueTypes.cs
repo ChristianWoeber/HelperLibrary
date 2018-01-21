@@ -4,6 +4,7 @@
     {
         Values,
         Fields,
-        UpdateValues
+        UpdateValues,
+        InList
     }
 }

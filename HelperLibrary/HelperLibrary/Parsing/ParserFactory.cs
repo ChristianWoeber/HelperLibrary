@@ -6,7 +6,9 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using HelperLibrary.Database.Models;
 using HelperLibrary.Extensions;
 using HelperLibrary.Interfaces;
 using HelperLibrary.Util.Atrributes;
@@ -91,6 +93,7 @@ namespace HelperLibrary.Parsing
                                     {
                                         var mapping = new TextReaderInputRecordMapping(field, i);
                                         dicInputMapping.Add(field, mapping);
+                                        break;
                                     }
                                 }
                             }
@@ -113,6 +116,7 @@ namespace HelperLibrary.Parsing
                                         {
                                             var prop = fields[dicInputMapping[keyword].ArrayIndex];
                                             propInfo.SetValue(obj, Convert.ChangeType(prop, propInfo.PropertyType, CultureInfo.InvariantCulture));
+                                            break;
                                         }
                                     }
                                 }
@@ -125,7 +129,58 @@ namespace HelperLibrary.Parsing
                     isFirst = false;
                 }
                 return lsReturn;
-            }          
+            }
+        }
+        // n=name, o=open, p = previous close, s = symbol// 
+        public static YahooDataRecord GetSingleYahooLineHcMapping(string data)
+        {
+            var dataArray = data.Split(',', ';');
+
+            if (dataArray[2].Contains("N/A") || dataArray[4].Contains("N/A"))
+                return null;
+
+            var name = Normalize(dataArray[0]);
+            var close = ParseDecimal(dataArray[2]);
+            var asof = ParseDateTime(dataArray[4]);
+
+            var rec = new YahooDataRecord
+            {
+                Name = name ?? "",
+                AdjClosePrice = close ?? Decimal.MinValue,
+                ClosePrice = close ?? Decimal.MinValue,
+                Asof = asof ?? DateTime.MinValue
+            };
+            return rec;
+        }
+
+        private static string Normalize(string input)
+        {
+            return input.Trim('\\', '"');
+        }
+
+        private static decimal? ParseDecimal(string input)
+        {
+            decimal d;
+            if (decimal.TryParse(input, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out d))
+                return d;
+
+            return null;
+
+        }
+
+        private static DateTime? ParseDateTime(string input)
+        {
+            var regex = new Regex(@"\d\/\d\d?\/\d\d\d\d");
+
+            if (regex.IsMatch(input))
+            {
+                foreach (Match match in Regex.Matches(input, @"\d\/\d\d?\/\d\d\d\d"))
+                {
+                    return DateTime.Parse(match.Value.ToString(),CultureInfo.InvariantCulture);
+                }
+            }
+
+            return null;
         }
     }
 

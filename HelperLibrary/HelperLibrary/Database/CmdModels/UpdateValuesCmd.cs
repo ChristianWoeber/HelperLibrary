@@ -9,7 +9,7 @@ namespace HelperLibrary.Database.CmdModels
 {
     public class UpdateValuesCmd : ISqlValueCmd
     {
-        public string CreateCmd(params object[] values)
+        public string CreateCmd(string field, params object[] values)
         {
             //triviale Implementierung gehe von value pairs aus 1 FieldName, 2 Value, FieldName, Value //
             // daher werden alle Fieldnames und alle Values gesammelt um folgende Syntax zu erhalten//
@@ -36,12 +36,12 @@ namespace HelperLibrary.Database.CmdModels
                 if (i == _lsKeyValue.Count - 1)
                 {
                     sb.Append($"{_lsKeyValue[i].Key}=");
-                    sb.Append($"{DbTools.ParseObject(_lsKeyValue[i].Value)}");
+                    sb.Append($"{DbTools.ParseObject(_lsKeyValue[i].Value) ?? "Null"}");
                 }
                 else
                 {
                     sb.Append($"{_lsKeyValue[i].Key}=");
-                    sb.Append($"{DbTools.ParseObject(_lsKeyValue[i].Value)},");
+                    sb.Append($"{DbTools.ParseObject(_lsKeyValue[i].Value) ?? "Null"},");
                 }
             }
             return sb.ToString();
