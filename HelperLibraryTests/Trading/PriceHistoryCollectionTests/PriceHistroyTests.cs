@@ -44,7 +44,7 @@ namespace HelperLibraryTests
         /// Methode um Testdaten zu generieren
         /// </summary>
         /// <returns></returns>
-        private static IEnumerable<IDataRecord> InitTestHistory(int min = 89, int max = 111, int testSecurityId=10)
+        private static IEnumerable<IDataRecord> InitTestHistory(int min = 89, int max = 111, int testSecurityId = 10)
         {
             var testId = testSecurityId;
             var rand = new Random();
@@ -121,16 +121,15 @@ namespace HelperLibraryTests
         [TestMethod]
         public void PriceHistoryCalculationContextTest()
         {
-            var calculationContext = new CalculationContext();
 
-            var priceHistroy = new PriceHistoryCollection(TestCollection, calculationContext);
-            var priceHistroy2 = new PriceHistoryCollection(InitTestHistory(95,121,11), calculationContext);
-            var priceHistroy3 = new PriceHistoryCollection(InitTestHistory(99,131,12), calculationContext);
+            var priceHistroy = new PriceHistoryCollection(TestCollection);
+            var priceHistroy2 = new PriceHistoryCollection(InitTestHistory(95, 121, 11));
+            var priceHistroy3 = new PriceHistoryCollection(InitTestHistory(99, 131, 12));
 
-            Trace.TraceInformation("first item in Range asof :" + range.FirstOrDefault()?.Asof.ToShortDateString());
-            Trace.TraceInformation("last item in Range asof :" + range.LastOrDefault()?.Asof.ToShortDateString());
 
-            Assert.IsTrue(range != null && range.Count() > 5, "Achtung die Methode Range konnte keine order zu wenige items zurückgeben");
+            Assert.IsTrue(priceHistroy.Calc.EnumDailyReturns() != null && priceHistroy.Calc.EnumDailyReturns().Count() == 99);
+            Assert.IsTrue(priceHistroy2.Calc.EnumDailyReturns() != null && priceHistroy2.Calc.EnumDailyReturns().Count() == 99);
+            Assert.IsTrue(priceHistroy3.Calc.EnumDailyReturns() != null && priceHistroy2.Calc.EnumDailyReturns().Count() == 99);
 
         }
     }
