@@ -10,24 +10,40 @@ namespace HelperLibrary.Database
 {
     internal class ObjectMapper<T>
     {
-        // TODO: CreateFunction für Mapping von Objects
+        
+        private static Dictionary<string, Action<T, object>> _setterFuncsDictionary { get; } = new Dictionary<string, Action<T, object>>();
+
         internal static T Create(IDataReader rd)
         {
+            //Create instance of the object 
             var obj = Activator.CreateInstance<T>();
-            foreach (var item in typeof(T).GetProperties())
+
+            foreach (var pi in typeof(T).GetProperties())
             {
-                //var setValue = item.CreateSetter<T>();
-                var lstAttributes = (IList<CustomAttributeData>)item.CustomAttributes;
-                if (lstAttributes.Count > 0)
+                if (!_setterFuncsDictionary.ContainsKey(pi.Name))
+                {
+                    var setterFunc = pi.CreateSetter<T>();
+                    _setterFuncsDictionary.Add(pi.Name, setterFunc);
+                }
+
+                var storageAttribute = pi.GetCustomAttribute<DataAttribute>()?.Storage;
+
+                if (!string.IsNullOrWhiteSpace(storageAttribute))
                 {
                     try
-                    {
-                        var attr = lstAttributes.FirstOrDefault(x => x.AttributeType.FullName.Contains("Linq")).NamedArguments[0].TypedValue.Value.ToString();
-                        var dbValue = rd[attr];
-                        var propertyValue = TypeConversion(dbValue, item.PropertyType);
-                        item.SetValue(obj, propertyValue);
-                        //setValue(obj, propertyValue);
+                    {                     
+                        var dbValue = rd[storageAttribute];
+                        var propertyValue = TypeConversion(dbValue, pi.PropertyType);
 
+                        if (_setterFuncsDictionary.ContainsKey(pi.Name))
+                        {
+                            //Get the setterFunc from Dictionary
+                            var setter = _setterFuncsDictionary[pi.Name];
+                            //set value via expression
+                            setter(obj, propertyValue);
+                        }
+                       // pi.SetValue(obj, propertyValue);
+                      
                     }
                     catch (Exception ex)
                     {
@@ -46,7 +62,7 @@ namespace HelperLibrary.Database
             }
             else if (propertyType == typeof(int?))
             {
-                if(dbValue == DBNull.Value)
+                if (dbValue == DBNull.Value)
                     return null;
 
                 return Convert.ToInt32(dbValue);

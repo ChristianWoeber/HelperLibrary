@@ -24,7 +24,13 @@ namespace HelperLibrary.Util.Logging
             var sb = new StringBuilder();
             sb.Append($"{_classNameType.Name}|DEBUG|");
             sb.Append(logMesage);
+            AppendDateTime(sb);
             Log(sb.ToString());
+        }
+
+        private void AppendDateTime(StringBuilder sb)
+        {
+            sb.Append($" |{DateTime.Now}");
         }
 
         public void Error(string logMesage)
@@ -32,6 +38,7 @@ namespace HelperLibrary.Util.Logging
             var sb = new StringBuilder();
             sb.Append($"{_classNameType.Name}|ERROR|");
             sb.Append(logMesage);
+            AppendDateTime(sb);
             Log(sb.ToString());
         }
 
@@ -40,6 +47,7 @@ namespace HelperLibrary.Util.Logging
             var sb = new StringBuilder();
             sb.Append($"{_classNameType.Name}|INFO|");
             sb.Append(logMesage);
+            AppendDateTime(sb);
             Log(sb.ToString());
         }
 

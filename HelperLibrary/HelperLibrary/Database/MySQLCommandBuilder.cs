@@ -56,6 +56,8 @@ namespace HelperLibrary.Database
                             _cmdCache.Add(cmdEnum, new InsertCmd());
                         break;
                     case SQLCommandTypes.Delete:
+                        if (!_cmdCache.ContainsKey(cmdEnum))
+                            _cmdCache.Add(cmdEnum, new DeleteCmd());
                         break;
                     case SQLCommandTypes.Update:
                         if (!_cmdCache.ContainsKey(cmdEnum))
@@ -65,10 +67,27 @@ namespace HelperLibrary.Database
                         if (!_cmdCache.ContainsKey(cmdEnum))
                             _cmdCache.Add(cmdEnum, new SelectCmd());
                         break;
+                    case SQLCommandTypes.Call:
+                        if (!_cmdCache.ContainsKey(cmdEnum))
+                            _cmdCache.Add(cmdEnum, new CallCmd());
+                        break;
                     default:
                         break;
                 }
             }
+        }
+
+        public void Greater(object[] values)
+        {
+            SQLOperator = SQLOperators.Equal;
+            if (SQLOperatorsCollection.Count > 0)
+                OperatorsCmdBuilder.Append(" And ");
+            else if (CmdBuilder.ToString().Contains("where"))
+                CmdBuilder.Append(" And ");
+
+            SQLOperatorsCollection.Add(SQLOperator);
+
+            CreateOperatorsCmdText(SQLOperator, values);
         }
 
         public void Equal(params object[] values)
@@ -76,8 +95,24 @@ namespace HelperLibrary.Database
             SQLOperator = SQLOperators.Equal;
             if (SQLOperatorsCollection.Count > 0)
                 OperatorsCmdBuilder.Append(" And ");
+            else if (CmdBuilder.ToString().Contains("where"))
+                CmdBuilder.Append(" And ");
 
             SQLOperatorsCollection.Add(SQLOperator);
+
+            CreateOperatorsCmdText(SQLOperator, values);
+        }
+
+        public void Less(object[] values)
+        {
+            SQLOperator = SQLOperators.Less;
+            if (SQLOperatorsCollection.Count > 0)
+                OperatorsCmdBuilder.Append(" And ");
+            else if (CmdBuilder.ToString().Contains("where"))
+                CmdBuilder.Append(" And ");
+
+            SQLOperatorsCollection.Add(SQLOperator);
+
             CreateOperatorsCmdText(SQLOperator, values);
         }
 
@@ -117,8 +152,12 @@ namespace HelperLibrary.Database
                 switch (cmdEnum)
                 {
                     case SQLOperators.Greater:
+                        if (!_cmdOperatorCache.ContainsKey(cmdEnum))
+                            _cmdOperatorCache.Add(cmdEnum, new GreaterCmd());
                         break;
                     case SQLOperators.Less:
+                        if (!_cmdOperatorCache.ContainsKey(cmdEnum))
+                            _cmdOperatorCache.Add(cmdEnum, new LessCmd());
                         break;
                     case SQLOperators.Equal:
                         if (!_cmdOperatorCache.ContainsKey(cmdEnum))
@@ -178,6 +217,37 @@ namespace HelperLibrary.Database
                         break;
                 }
             }
+        }
+
+        public void CallProcedure(string procedureName, object[] arguments)
+        {
+            CmdBuilder.Append($"{procedureName}(");
+            var cnt = 0;
+            foreach (var arg in arguments)
+            {
+                cnt++;
+                if (arguments?.Length > 1)
+                {
+                    if (cnt == arguments?.Length)
+                        CmdBuilder.Append($"{Parse(arg)}");
+                    else
+                        CmdBuilder.Append($"{Parse(arg)},");
+                }
+                else
+                {
+                    CmdBuilder.Append($"{Parse(arg)}");
+                }
+            }
+            CmdBuilder.Append(")");
+
+        }
+
+        private string Parse(object arg)
+        {
+            if (!(arg is DateTime))
+                return arg.ToString();
+
+            return $"'{((DateTime)arg).ToString("yyyy-MM-dd")}'";
         }
 
         public void CreateValueTypesCmd(SQLValueTypes type, object[] values, string field = null)

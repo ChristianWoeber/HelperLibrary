@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using HelperLibrary.Interfaces;
+using HelperLibrary.Extensions;
 
 namespace HelperLibrary.Util.Plugin
 {
     public static class PluginHandler
     {
         private const string MAINROOT = @"Z:\VisualStudio\Plugins";
+        private const string MAINROOT_SERVER = @"F:\VisualStudio\Plugins";
+
         private static Dictionary<string, AssemblyObj> _pluginCache;
 
         private static IDownloadPlugin GetDownloadPlugin(AssemblyObj obj, string pluginName)
@@ -53,7 +54,12 @@ namespace HelperLibrary.Util.Plugin
         private static IPluginBase LoadPlugins(string plugin)
         {
             _pluginCache = new Dictionary<string, AssemblyObj>();
-            var files = Directory.GetFiles(MAINROOT, "*.dll", SearchOption.AllDirectories);
+            string[] files;
+            if (Environment.UserName.ContainsIC("Administrator"))
+                files = Directory.GetFiles(MAINROOT_SERVER, "*.dll", SearchOption.AllDirectories);
+            else
+                files = Directory.GetFiles(MAINROOT, "*.dll", SearchOption.AllDirectories);
+
             var baseType = typeof(IPluginBase);
 
             foreach (var file in files.Where(x => !x.Contains("obj")))
@@ -87,7 +93,9 @@ namespace HelperLibrary.Util.Plugin
 
         private static AssemblyObj GetModul(string filename, Type basetype)
         {
-
+            if (filename.ContainsIC("HelperLibrary") || filename.ContainsIC("HtmlAgilityPack") ||
+                filename.ContainsIC("Sql") || filename.ContainsIC("YahooLibrary"))
+                return null;
             //Loads an assembly given its file name or path.
             var assembly = Assembly.LoadFrom(filename);
             // Assembly Eigenschaften checken

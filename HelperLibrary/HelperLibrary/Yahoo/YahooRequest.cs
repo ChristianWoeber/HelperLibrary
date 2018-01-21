@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HelperLibrary.Extensions;
 
 namespace HelperLibrary.Yahoo
 {
@@ -40,6 +41,12 @@ namespace HelperLibrary.Yahoo
             return _builder;
         }
 
+        public YahooRequestBuilder SetCrumb(string crumb)
+        {
+            _builder.SetCrumb(crumb);
+            return _builder;
+        }
+
         public YahooRequestBuilder Interval(YahooRequestInterval? interval = null)
         {
             _builder.Interval(interval ?? YahooRequestInterval.Daily);
@@ -56,6 +63,7 @@ namespace HelperLibrary.Yahoo
     {
         private YahooRequestType _type;
         private StringBuilder _sb;
+        private string _crumb;
         public List<string> TickersCollection = new List<string>();
         public List<YahooUrlItem> Urls = new List<YahooUrlItem>();
 
@@ -71,7 +79,7 @@ namespace HelperLibrary.Yahoo
                     _sb.Append(Settings.Default.SingleBaseUrl);
                     break;
                 case YahooRequestType.Historical:
-                    _sb.Append(Settings.Default.HistoricalBaseUrl);
+                    _sb.Append(Settings.Default.HistoricalBaseUrlNew);
                     break;
             }
         }
@@ -89,25 +97,21 @@ namespace HelperLibrary.Yahoo
 
         private void AppendToBase()
         {
-            // zur Basis Url hinzufügen => =s@&
-            _sb.Append(YahooFieldsList.SYMBOL);
-            _sb.Append("=");
+            // update seit Mai 2017 API changed//       
             _sb.Append(YahooFieldsList.TICKER_PLACEHOLDER);
-            _sb.Append(YahooFieldsList.AND);
+            _sb.Append(YahooFieldsList.QUESTIONMARK);
         }
 
         private void AppendFrom(DateTime dt)
         {
-            //Append month//
-            _sb.Append($"{YahooFieldsList.START_MONTH}={dt.Month}");
-            _sb.Append(YahooFieldsList.AND);
+            //append keyword period1
+            _sb.Append(YahooFieldsList.FROM);
 
-            //Append day//
-            _sb.Append($"{YahooFieldsList.START_DAY}={dt.Day}");
-            _sb.Append(YahooFieldsList.AND);
+            //append =
+            _sb.Append(YahooFieldsList.EQUALS);
 
-            //Append year//
-            _sb.Append($"{YahooFieldsList.START_YEAR}={dt.Year}");
+            //Append unixtimestamp from//
+            _sb.Append($"{dt.ToUnixSeconds()}");
         }
 
         public YahooRequestBuilder Tickers(string[] tickers)
@@ -140,18 +144,24 @@ namespace HelperLibrary.Yahoo
 
         private void AppendTo(DateTime dt)
         {
-            //Append month//
-            _sb.Append($"{YahooFieldsList.END_MONTH}={dt.Month}");
+            //append &
             _sb.Append(YahooFieldsList.AND);
 
-            //Append day//
-            _sb.Append($"{YahooFieldsList.END_DAY}={dt.Day}");
-            _sb.Append(YahooFieldsList.AND);
+            //append keyword period2
+            _sb.Append(YahooFieldsList.TO);
 
-            //Append year//
-            _sb.Append($"{YahooFieldsList.END_YEAR}={dt.Year}");
+            //append =
+            _sb.Append(YahooFieldsList.EQUALS);
+
+            //Append unixtimestamp from//
+            _sb.Append($"{dt.ToUnixSeconds()}");
         }
 
+        public YahooRequestBuilder SetCrumb(string crumb)
+        {
+            _crumb = crumb;
+            return this;
+        }
 
         public YahooRequestBuilder To(DateTime? dt)
         {
@@ -164,20 +174,34 @@ namespace HelperLibrary.Yahoo
 
         public YahooRequestBuilder BuildUrls()
         {
+            string replacableUrl = null;
+
             foreach (var ticker in TickersCollection)
             {
                 var baseUrl = Settings.Default.SingleBaseUrl;
                 if (_type == YahooRequestType.Single)
                 {
-                    baseUrl+="=";
-                    baseUrl+=ticker;
-                    ////&f= fields, n=name, o=open, p = previous close, s=symbol, d1=asof// 
-                    baseUrl+="&f=nopsd1";
+                    baseUrl += "=";
+                    baseUrl += ticker;
+
+                    //&f= fields, n=name, o=open, p = previous close, s=symbol, d1=asof
+                    baseUrl += "&f=nopsd1";
                     Urls.Add(new YahooUrlItem(baseUrl, ticker));
                 }
                 else
                 {
-                    var replacableUrl = _sb.ToString();
+                    if (replacableUrl == null)
+                    {
+                        // history appendix for url
+                        _sb.Append($"{YahooFieldsList.AND}{YahooFieldsList.HISTORY}");
+
+                        //crumb stamp
+                        _sb.Append($"{YahooFieldsList.AND}{YahooFieldsList.CRUMB}{YahooFieldsList.EQUALS}{_crumb}");
+
+                        //store replaceable URl
+                        replacableUrl = _sb.ToString();
+                    }
+                    
                     var url = replacableUrl.Replace("@", ticker);
                     Urls.Add(new YahooUrlItem(url, ticker));
                 }
@@ -188,7 +212,7 @@ namespace HelperLibrary.Yahoo
 
         public YahooRequestBuilder Interval(YahooRequestInterval intervalType)
         {
-            _sb.Append($"{YahooFieldsList.AND}{YahooFieldsList.INTERVAL}={intervalType.GetAttribute<YahooChar>().Name}");
+            _sb.Append($"{YahooFieldsList.AND}{YahooFieldsList.INTERVAL}=1{intervalType.GetAttribute<YahooChar>().Name}");
             return this;
         }
     }

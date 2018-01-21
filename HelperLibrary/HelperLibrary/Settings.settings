@@ -17,5 +17,8 @@
     <Setting Name="SingleBaseUrl" Type="System.String" Scope="Application">
       <Value Profile="(Default)">http://finance.yahoo.com/d/quotes.csv?s</Value>
     </Setting>
+    <Setting Name="HistoricalBaseUrlNew" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">https://query1.finance.yahoo.com/v7/finance/download/</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -190,7 +190,7 @@ namespace HelperLibrary.Collections
         /// <returns></returns>
         public KeyValuePair Get(TKey key)
         {
-            return Get(key, BinarySearchOption.GetInvalidIfNotFound);
+            return Get(key, BinarySearchOption.GetNextIfNotFound);
         }
 
         /// <summary>

@@ -25,5 +25,10 @@ namespace HelperLibrary.Database.Models
         [Column(Storage = "IS_VALID")]
         public int IsValid { get; set; }
 
+        public override string ToString()
+        {
+            return $"Secid:{SecurityId}_Type:{ValitationId}_Date:{LastValidationDateTime}_IsValid:{IsValid}";
+        }
+
     }
 }

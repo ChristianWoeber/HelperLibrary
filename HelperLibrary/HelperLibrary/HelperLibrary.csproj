@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HtmlAgilityPack, Version=1.4.9.5, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\TradingEnviroment\packages\HtmlAgilityPack.1.4.9.5\lib\Net45\HtmlAgilityPack.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="MySql.Data, Version=6.9.9.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <HintPath>..\..\..\ServiceLibrary\packages\MySql.Data.6.9.9\lib\net45\MySql.Data.dll</HintPath>
       <Private>True</Private>
@@ -39,6 +43,7 @@
     <Reference Include="System.Data.Linq" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,8 +52,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Calculations\MaxDrawdown.cs" />
+    <Compile Include="Collections\PriceHistoryCollection.cs" />
+    <Compile Include="Database\CallCmd.cs" />
+    <Compile Include="Database\Interfaces\IDataRecord.cs" />
+    <Compile Include="Database\Models\TransactionItem.cs" />
+    <Compile Include="Enums\CaclulationOption.cs" />
+    <Compile Include="Calculations\Performance.cs" />
+    <Compile Include="Calculations\Quote.cs" />
+    <Compile Include="Calculations\ReturnCalculation.cs" />
     <Compile Include="Collections\BinarySearchCollections.cs" />
     <Compile Include="Collections\BinarySearchOption.cs" />
+    <Compile Include="Database\CmdModels\DeleteCmd.cs" />
     <Compile Include="Database\CmdModels\EqualCmd.cs" />
     <Compile Include="Database\CmdModels\FieldsCmd.cs" />
     <Compile Include="Database\CmdModels\InsertCmd.cs" />
@@ -75,17 +90,35 @@
     <Compile Include="Database\MySQLCommandBuilder.cs" />
     <Compile Include="Database\ObjectMapper.cs" />
     <Compile Include="Database\SQLCmd.cs" />
+    <Compile Include="Enums\TradingInterval.cs" />
+    <Compile Include="Enums\TransactionType.cs" />
+    <Compile Include="Extensions\CollectionExtensionscs.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Extensions\DecimalExtensions.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\PropertyInfoExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Interfaces\ICalculation.cs" />
+    <Compile Include="Interfaces\IDownloadModel.cs" />
     <Compile Include="Interfaces\IParser.cs" />
     <Compile Include="Interfaces\IPlugin.cs" />
+    <Compile Include="Interfaces\IPmSettings.cs" />
+    <Compile Include="Interfaces\IQuote.cs" />
+    <Compile Include="Interfaces\IScoringModel.cs" />
     <Compile Include="Parsing\ParserFactory.cs" />
     <Compile Include="Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="Trading\BacktestHandler.cs" />
+    <Compile Include="Trading\PortfolioManager\DefaultSettings.cs" />
+    <Compile Include="Trading\PortfolioManager\PortfolioManager.cs" />
+    <Compile Include="Trading\PortfolioManager\PortfolioManagerBase.cs" />
+    <Compile Include="Trading\PortfolioManager\TransactionsWrapper.cs" />
+    <Compile Include="Trading\ScoringProvider.cs" />
+    <Compile Include="Trading\TradingCandidate.cs" />
     <Compile Include="Util\Atrributes\InputMapping.cs" />
     <Compile Include="Util\Logging\ILogger.cs" />
     <Compile Include="Util\Logging\FileLogger.cs" />
@@ -93,7 +126,9 @@
     <Compile Include="Util\Logging\LoggerSettings.cs" />
     <Compile Include="Util\MailHelper\MailHelper.cs" />
     <Compile Include="Util\Plugin\PluginHandler.cs" />
+    <Compile Include="Util\Web\DownloadHelper.cs" />
     <Compile Include="Yahoo\EnumExtensions.cs" />
+    <Compile Include="Yahoo\Token.cs" />
     <Compile Include="Yahoo\YahooFieldsList.cs" />
     <Compile Include="Yahoo\YahooRecord.cs" />
     <Compile Include="Yahoo\YahooRequest.cs" />
@@ -105,14 +140,14 @@
     <Compile Include="Database\Enums\ValidationTypes.cs" />
     <None Include="packages.config" />
     <None Include="Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "Z:\VisualStudio\Plugins"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "\\BlackBox\Daten\VisualStudio\Plugins"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

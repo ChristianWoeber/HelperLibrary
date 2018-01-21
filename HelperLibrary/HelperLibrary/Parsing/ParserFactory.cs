@@ -1,22 +1,20 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using HelperLibrary.Database.Models;
-using HelperLibrary.Extensions;
-using HelperLibrary.Interfaces;
 using HelperLibrary.Util.Atrributes;
+using HelperLibrary.Extensions;
+using System;
 
 namespace HelperLibrary.Parsing
 {
     public class SimpleTextParser
     {
+
         public static T GetSingleOfType<T>(string data)
         {
             foreach (var item in typeof(T).GetCustomAttributes(typeof(InputMapping), false))
@@ -48,25 +46,40 @@ namespace HelperLibrary.Parsing
             return new List<T>();
         }
 
+        public static List<T> GetListOfTypeFromFilePath<T>(string path)
+        {
+            if (File.Exists(path))
+                return GetListOfType<T>(File.ReadAllText(path));
+
+            return null;
+        }
+
 
         public static List<T> GetListOfType<T>(string data)
         {
+            //Action<T, object> setterFunc = null;
             var lsReturn = new List<T>();
+
             if (string.IsNullOrWhiteSpace(data))
                 return new List<T>();
 
-            var keywords = new HashSet<InputMapper>();
+            //initialize an empty HashSet with Key PropertyName and Value the input Mapping (the search keywords of the generic Type T
+            var keywords = new HashSet<InputMapper<T>>();
+
+            //initialize an empty Dictionary with Key PropertyName and Value Mapping
             var dicInputMapping = new Dictionary<string, TextReaderInputRecordMapping>(StringComparer.OrdinalIgnoreCase);
             //Get Keywords vis Reflection for Mapping//
+
+
             foreach (var item in typeof(T).GetProperties())
             {
                 var attr = item.GetCustomAttributes(typeof(InputMapping), false);
-                if (attr != null)
+                if (attr.Length > 0)
                 {
                     var mappingAttr = (InputMapping[])attr;
                     foreach (var key in mappingAttr[0].KeyWords)
                     {
-                        keywords.Add(new InputMapper(key, item));
+                        keywords.Add(new InputMapper<T>(key, item));
                     }
                 }
             }
@@ -87,10 +100,11 @@ namespace HelperLibrary.Parsing
                         {
                             foreach (var keyword in keywords)
                             {
-                                if (keyword.PropertyName.ContainsIc(field))
+                                if (keyword.PropertyName.ContainsIC(field))
                                 {
                                     if (!dicInputMapping.ContainsKey(field))
                                     {
+
                                         var mapping = new TextReaderInputRecordMapping(field, i);
                                         dicInputMapping.Add(field, mapping);
                                         break;
@@ -100,28 +114,32 @@ namespace HelperLibrary.Parsing
                         }
                         else
                         {
+
                             // Create Obj //
                             var obj = Activator.CreateInstance<T>();
 
-                            //Search for Mapped Properties
-                            foreach (var propInfo in typeof(T).GetProperties())
+                            // Set Value of Mapped Properties
+                            var insertToList = true;
+                            foreach (var item in keywords)
                             {
-                                var attr = propInfo.GetCustomAttributes(typeof(InputMapping), false);
-                                if (attr != null)
+                                if (dicInputMapping.ContainsKey(item.PropertyName))
                                 {
-                                    var mappingAttr = (InputMapping[])attr;
-                                    foreach (var keyword in mappingAttr[0].KeyWords)
+                                    var value = fields[dicInputMapping[item.PropertyName].ArrayIndex];
+
+                                    if (value == "null" || string.IsNullOrEmpty(value))
                                     {
-                                        if (dicInputMapping.ContainsKey(keyword))
-                                        {
-                                            var prop = fields[dicInputMapping[keyword].ArrayIndex];
-                                            propInfo.SetValue(obj, Convert.ChangeType(prop, propInfo.PropertyType, CultureInfo.InvariantCulture));
-                                            break;
-                                        }
+                                        insertToList = false;
+                                        break;
                                     }
+
+                                    item.SetterFunc(obj, Convert.ChangeType(value, item.PropertyInfo.PropertyType, CultureInfo.InvariantCulture));
+
+
+                                    //item.PropertyInfo.SetValue(obj, Convert.ChangeType(prop, item.PropertyInfo.PropertyType, CultureInfo.InvariantCulture));
                                 }
                             }
-                            lsReturn.Add(obj);
+                            if (insertToList)
+                                lsReturn.Add(obj);
                             break;
                         }
                     }
@@ -132,7 +150,7 @@ namespace HelperLibrary.Parsing
             }
         }
         // n=name, o=open, p = previous close, s = symbol// 
-        public static YahooDataRecord GetSingleYahooLineHcMapping(string data)
+        public static YahooDataRecordExtended GetSingleYahooLineHcMapping(string data)
         {
             var dataArray = data.Split(',', ';');
 
@@ -143,14 +161,13 @@ namespace HelperLibrary.Parsing
             var close = ParseDecimal(dataArray[2]);
             var asof = ParseDateTime(dataArray[4]);
 
-            var rec = new YahooDataRecord
+            return new YahooDataRecordExtended
             {
-                Name = name ?? "",
-                AdjClosePrice = close ?? Decimal.MinValue,
-                ClosePrice = close ?? Decimal.MinValue,
+                Name = name,
+                AdjustedPrice = close ?? Decimal.MinValue,
+                Price = close ?? Decimal.MinValue,
                 Asof = asof ?? DateTime.MinValue
             };
-            return rec;
         }
 
         private static string Normalize(string input)
@@ -170,13 +187,19 @@ namespace HelperLibrary.Parsing
 
         private static DateTime? ParseDateTime(string input)
         {
-            var regex = new Regex(@"\d\/\d\d?\/\d\d\d\d");
+            var regex = new Regex(@"\d\d?\/\d\d?\/\d\d\d\d");
 
             if (regex.IsMatch(input))
             {
-                foreach (Match match in Regex.Matches(input, @"\d\/\d\d?\/\d\d\d\d"))
+                foreach (Match match in Regex.Matches(input, @"\d\d?\/\d\d?\/\d\d\d\d"))
                 {
-                    return DateTime.Parse(match.Value.ToString(),CultureInfo.InvariantCulture);
+                    if (DateTime.TryParse(match.Value.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var date))
+                    {
+                        return date;
+                    }
+
+                    throw new ArgumentException("Achtung das DateTime konnte nicht geparsed werden!");
+
                 }
             }
 
@@ -193,9 +216,10 @@ namespace HelperLibrary.Parsing
         public string PropertyName => Item1;
         public int ArrayIndex => Item2;
 
+
     }
 
-    public class InputMapper : Tuple<string, PropertyInfo>
+    public class InputMapper<T> : Tuple<string, PropertyInfo>
     {
         public InputMapper(string propertyName, PropertyInfo propertyInfo) : base(item1: propertyName, item2: propertyInfo)
         {
@@ -203,5 +227,6 @@ namespace HelperLibrary.Parsing
         }
         public string PropertyName => Item1;
         public PropertyInfo PropertyInfo => Item2;
+        public Action<T, object> SetterFunc => PropertyInfo.CreateSetter<T>();
     }
 }

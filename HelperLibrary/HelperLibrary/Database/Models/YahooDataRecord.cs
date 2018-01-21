@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Linq.Mapping;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using HelperLibrary.Util.Atrributes;
+using HelperLibrary.Database.Interfaces;
 
 namespace HelperLibrary.Database.Models
 {
-    public class YahooDataRecord
+    public class YahooDataRecord : IDataRecord
     {
         [InputMapping(KeyWords = new string[] { "date", "per date", "as of" })]
         [Column(Storage = "ASOF")]
@@ -16,7 +13,7 @@ namespace HelperLibrary.Database.Models
 
         [InputMapping(KeyWords = new string[] { "close" })]
         [Column(Storage = "CLOSE_PRICE")]
-        public decimal ClosePrice { get; set; }
+        public decimal Price { get; set; }
 
         [InputMapping(KeyWords = new string[] { "id", "secId" })]
         [Column(Storage = "SECURITY_ID")]
@@ -24,9 +21,24 @@ namespace HelperLibrary.Database.Models
 
         [InputMapping(KeyWords = new string[] { "adj close" })]
         [Column(Storage = "ADJUSTED_CLOSE_PRICE")]
-        public decimal AdjClosePrice { get; set; }
+        public decimal AdjustedPrice { get; set; }
 
 
-        public string Name { get;  set; }
+        //public string Name { get; set; }
+    }
+
+    public class YahooDataRecordExtended : YahooDataRecord
+    {
+        [InputMapping(KeyWords = new string[] { "Name"})]
+        public string Name { get; set; }
+
+       
+    }
+
+    public class YahooDataRecordPerformanceExtended : YahooDataRecord
+    {
+        public decimal DailyChange { get; set; }
+
+
     }
 }

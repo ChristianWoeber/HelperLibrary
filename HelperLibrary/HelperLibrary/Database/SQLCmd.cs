@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using HelperLibrary.Database.Models;
 
 namespace HelperLibrary.Database
 {
@@ -20,7 +21,7 @@ namespace HelperLibrary.Database
         {
             Connection = connection;
             cmdTpye = cmdtype;
-            _builder = new MySQLCommandBuilder(cmdTpye, _db, _table);
+            _builder = new MySQLCommandBuilder(cmdTpye, _db ?? "trading", _table ?? "yahoo_data");
         }
 
         public SQLCmd IsNotNull(string field)
@@ -38,9 +39,36 @@ namespace HelperLibrary.Database
             return cmd;
         }
 
+        public static SQLCmd Call()
+        {
+            CheckConnection();
+            var cmd = new SQLCmd(Connection, SQLCommandTypes.Call);
+            return cmd;
+
+        }
+
+        public SQLCmd Procedure(string procedureName, params object[] arguments)
+        {
+            _builder.CallProcedure(procedureName, arguments);
+            return this;
+        }
+
+
         public SQLCmd Equal(params object[] values)
         {
             _builder.Equal(values);
+            return this;
+        }
+
+        public SQLCmd Less(params object[] values)
+        {
+            _builder.Less(values);
+            return this;
+        }
+
+        public SQLCmd Greater(params object[] values)
+        {
+            _builder.Greater(values);
             return this;
         }
 
@@ -59,7 +87,7 @@ namespace HelperLibrary.Database
         {
             using (var rd = Query(this))
             {
-                while (rd.Read())
+                while (rd?.Read() == true)
                     yield return ObjectMapper<T>.Create(rd);
             }
         }
@@ -164,6 +192,15 @@ namespace HelperLibrary.Database
             }
         }
 
+        public static SQLCmd Delete(string database, string table)
+        {
+            CheckConnection();
+            _db = database;
+            _table = table;
+            var cmd = new SQLCmd(Connection, SQLCommandTypes.Delete);
+            return cmd;
+        }
+
         public static SQLCmd Update(string database, string table)
         {
             CheckConnection();
@@ -210,6 +247,8 @@ namespace HelperLibrary.Database
             }
             return this;
         }
+
+
 
         private static void CheckConnection()
         {

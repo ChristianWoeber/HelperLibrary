@@ -5,6 +5,7 @@
         Insert,
         Delete,
         Update,
-        Select
+        Select,
+        Call
     }
 }

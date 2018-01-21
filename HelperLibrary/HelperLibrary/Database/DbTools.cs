@@ -34,7 +34,7 @@ namespace HelperLibrary.Database
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                Console.ReadKey();
+                // Console.ReadKey();
             }
             finally
             {
@@ -54,7 +54,11 @@ namespace HelperLibrary.Database
 
                 if (builder.OperatorsCmdBuilder.Length > 0)
                 {
-                    builder.CmdBuilder.Append(" where ");
+                    if (!builder.CmdBuilder.ToString().EndsWith("And "))
+                    {
+                        // Achtung wird für alle Equals Conditions benötigt
+                        builder.CmdBuilder.Append(" where ");
+                    }
                     builder.CmdBuilder.Append(builder.OperatorsCmdBuilder);
                 }
 
