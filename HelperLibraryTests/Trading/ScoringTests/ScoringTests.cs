@@ -37,7 +37,7 @@ namespace HelperLibraryTests.Trading.ScoringTests
         public void TestScoringIsValid()
         {
             var handler = new ScoringProvider(null);
-            var score = handler.GetScore(_testSecurity, _testDateTime);
+            var score = handler.GetScore(_testSecurity.SecurityId, _testDateTime);
 
             Assert.IsTrue(score != null);
             Assert.IsTrue(score.IsValid == false);
@@ -48,7 +48,7 @@ namespace HelperLibraryTests.Trading.ScoringTests
         public void TestScoringData()
         {
             var handler = new ScoringProvider(null);
-            var score = handler.GetScore(_testSecurity, _testDateTime);
+            var score = handler.GetScore(_testSecurity.SecurityId, _testDateTime);
 
             if (!score.IsValid)
             {
